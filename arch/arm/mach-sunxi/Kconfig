@@ -85,6 +85,261 @@ config DRAM_SUN50I_H616_UNKNOWN_FEATURE
 	  feature.
 endif
 
+menu "A33 DRAM parameters (geometry / timings)"
+
+config DRAM_PARA_AUTODETECT
+	bool "Autodetect DRAM geometry"
+	depends on DRAM_SUN8I_A33
+	default y
+	help
+	  Autodetects DRAM geometry
+
+config DRAM_PARA_RANK
+	int "DRAM rank"
+	default 1
+	depends on !DRAM_PARA_AUTODETECT
+	help
+	  Number of chip selects used. 
+	  For A33 values allowed: 1, 2
+
+config DRAM_PARA_ROWS
+	int "DRAM row address bits"
+	depends on !DRAM_PARA_AUTODETECT
+	default 14
+	help
+	  Number of row address bits.
+	  For A33 values allowed: 11 ... 15
+
+config DRAM_PARA_BUS_WIDTH
+	int "DRAM bus width"
+	depends on !DRAM_PARA_AUTODETECT
+	default 16
+	help
+	  Width of DRAM data bus.
+	  For A33 values allowed: 8, 16
+
+config DRAM_PARA_PAGE_SIZE
+	int "DRAM page size"
+	depends on !DRAM_PARA_AUTODETECT
+	default 2048
+	help
+	  DRAM page size (2 raised to power of number of column address bits). Must be power of 2.
+	  For A33 values allowed: 512 ... 4096
+
+config DRAM_TIMING_DEFAULT
+	bool "Default DRAM timings"
+	depends on DRAM_SUN8I_A33
+	default y
+	help
+	  Default DRAM timings, from original u-boot sources
+
+config DRAM_TIMING_TCCD
+	int "tCCD"
+	depends on !DRAM_TIMING_DEFAULT
+	default 2
+	help
+	  CAS to CAS command delay
+	  unit: clock cycles
+
+config DRAM_TIMING_TFAW
+	int "tFAW"
+	depends on !DRAM_TIMING_DEFAULT
+	default 50000
+	help
+	  Four ACTIVATE windows
+	  unit: picoseconds
+
+config DRAM_TIMING_TRRD_CK
+	int "tRRD CK"
+	depends on !DRAM_TIMING_DEFAULT
+	default 4
+	help
+	  ACTIVATE to ACTIVATE minimum command period
+	  unit: clock cycles
+	  note: greater of tRRD_CK and tRRD NS is taken into account
+
+config DRAM_TIMING_TRRD_PS
+	int "tRRD PS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 10000
+	help
+	  ACTIVATE to ACTIVATE minimum command period
+	  unit: picoseconds
+	  note: greater of tRRD_CK and tRRD NS is taken into account
+
+config DRAM_TIMING_TRCD
+	int "tRCD"
+	depends on !DRAM_TIMING_DEFAULT
+	default 15000
+	help
+	  ACTIVATE to internal READ or WRITE delay time
+	  unit: picoseconds
+
+config DRAM_TIMING_TRC
+	int "tRC"
+	depends on !DRAM_TIMING_DEFAULT
+	default 53000
+	help
+	  ACTIVATE to ACTIVATE or REFRESH command period
+	  unit: picoseconds
+
+config DRAM_TIMING_TXP_CK
+	int "tXP CK"
+	depends on !DRAM_TIMING_DEFAULT
+	default 3
+	help
+	  DLL on, any valid command, or DLL off to commands not requiring locked DLL
+	  unit: clock cycles
+	  note: greater of tXP CK and tXP NS is taken into account
+
+config DRAM_TIMING_TXP_PS
+	int "tXP PS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 8000
+	help
+	  DLL on, any valid command, or DLL off to commands not requiring locked DLL
+	  unit: picoseconds
+	  note: greater of tXP CK and tXP NS is taken into account
+
+config DRAM_TIMING_TWTR_CK
+	int "tWTR CK"
+	depends on !DRAM_TIMING_DEFAULT
+	default 4
+	help
+	  Delay from start of internal WRITE transaction to internal READ command
+	  unit: clock cycles
+	  note: greater of tWTR CK and tWTR NS is taken into account
+
+config DRAM_TIMING_TWTR_PS
+	int "tWTR PS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 8000
+	help
+	  Delay from start of internal WRITE transaction to internal READ command
+	  unit: picoseconds
+	  note: greater of tWTR CK and tWTR NS is taken into account
+
+config DRAM_TIMING_TRTP_CK
+	int "tRTP CK"
+	depends on !DRAM_TIMING_DEFAULT
+	default 4
+	help
+	  READ to PRECHARGE time
+	  unit: clock cycles
+	  note: greater of tRTP CK and tRTP NS is taken into account
+
+config DRAM_TIMING_TRTP_PS
+	int "tRTP PS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 8000
+	help
+	  READ to PRECHARGE time
+	  unit: picoseconds
+	  note: greater of tRTP CK and tRTP NS is taken into account
+
+config DRAM_TIMING_TWR_CK
+	int "tWR CK"
+	depends on !DRAM_TIMING_DEFAULT
+	default 3
+	help
+	  Write recovery time
+	  unit: clock cycles
+	  note: greater of tWR CK and tWR NS is taken into account
+
+config DRAM_TIMING_TWR_PS
+	int "tWR PS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 15000
+	help
+	  Write recovery time
+	  unit: picoseconds
+	  note: greater of tWR CK and tWR NS is taken into account
+
+config DRAM_TIMING_TRP
+	int "tRP"
+	depends on !DRAM_TIMING_DEFAULT
+	default 15000
+	help
+	  PRECHARGE command period
+	  unit: picoseconds
+
+config DRAM_TIMING_TRAS
+	int "tRAS"
+	depends on !DRAM_TIMING_DEFAULT
+	default 38000
+	help
+	  ACTIVATE to PRECHARGE command period
+	  unit: picoseconds
+
+config DRAM_TIMING_TREFI
+	int "tREFI"
+	depends on !DRAM_TIMING_DEFAULT
+	default 7800000
+	help
+	  Maximum average periodic refresh.
+	  unit: picoseconds
+
+config DRAM_TIMING_TRFC
+	int "tRFC"
+	depends on !DRAM_TIMING_DEFAULT
+	default 350000
+	help
+	  REFRESH to ACTIVATE or REFRESH command period.
+	  unit: picoseconds
+
+config DRAM_TIMING_CL
+	int "CL"
+	depends on !DRAM_TIMING_DEFAULT
+	default 12
+	help
+	  CAS latency
+	  unit: clock cycles
+
+config DRAM_TIMING_CWL
+	int "CWL"
+	depends on !DRAM_TIMING_DEFAULT
+	default 8
+	help
+	  CAS write latency
+	  unit: clock cycles
+
+config DRAM_MR_DEFAULT
+	bool "Default DRAM mode register values"
+	depends on DRAM_SUN8I_A33
+	default y
+	help
+	  Default DRAM settings, from original u-boot sources
+
+config DRAM_MR0
+	hex "MR0"
+	depends on !DRAM_MR_DEFAULT
+	default 0x1c70
+	help
+	  Value to be written to DRAM mode register 0
+
+config DRAM_MR1
+	hex "MR1"
+	depends on !DRAM_MR_DEFAULT
+	default 0x0040
+	help
+	  Value to be written to DRAM mode register 1
+
+config DRAM_MR2
+	hex "MR2"
+	depends on !DRAM_MR_DEFAULT
+	default 0x0018
+	help
+	  Value to be written to DRAM mode register 2
+
+config DRAM_MR3
+	hex "MR3"
+	depends on !DRAM_MR_DEFAULT
+	default 0x0000
+	help
+	  Value to be written to DRAM mode register 3
+
+endmenu
+
 config SUN6I_PRCM
 	bool
 	help

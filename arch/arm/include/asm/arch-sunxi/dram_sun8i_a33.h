@@ -174,9 +174,16 @@ struct sunxi_mctl_ctl_reg {
 #define MCTL_CR_CS1_CONTROL(x)		((x) << 24)
 
 /* DRAM control (sunxi_mctl_ctl_reg) register constants */
+#ifndef CONFIG_DRAM_MR_DEFAULT
+#define MCTL_MR0			CONFIG_DRAM_MR0
+#define MCTL_MR1			CONFIG_DRAM_MR1
+#define MCTL_MR2			CONFIG_DRAM_MR2
+#define MCTL_MR3			CONFIG_DRAM_MR3
+#else
 #define MCTL_MR0			0x1c70 /* CL=11, WR=12 */
 #define MCTL_MR1			0x40
 #define MCTL_MR2			0x18 /* CWL=8 */
 #define MCTL_MR3			0x0
+#endif
 
 #endif /* _SUNXI_DRAM_SUN8I_A33_H */

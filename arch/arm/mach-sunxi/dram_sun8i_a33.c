@@ -47,6 +47,7 @@ static void mctl_set_cr(struct dram_para *para)
 
 static void auto_detect_dram_size(struct dram_para *para)
 {
+#ifdef CONFIG_DRAM_PARA_AUTODETECT
 	u8 orig_rank = para->rank;
 	int rows, columns;
 
@@ -69,11 +70,16 @@ static void auto_detect_dram_size(struct dram_para *para)
 		if (mctl_mem_matches(1 << columns))
 			break;
 	}
-
 	para->seq = 0;
 	para->rank = orig_rank;
 	para->rows = rows;
 	para->page_size = 1 << columns;
+#else
+	para->seq = 0;
+	para->rank = CONFIG_DRAM_PARA_RANK;
+	para->rows = CONFIG_DRAM_PARA_ROWS;
+	para->page_size = CONFIG_DRAM_PARA_PAGE_SIZE;
+#endif
 	mctl_set_cr(para);
 }
 
@@ -85,13 +91,40 @@ static inline int ns_to_t(int nanoseconds)
 	return (ctrl_freq * nanoseconds + 999) / 1000;
 }
 
+static inline int ps_to_t(int picoseconds)
+{
+	const unsigned long long ctrl_freq =
+		CONFIG_DRAM_CLK * DRAM_CLK_MUL / DRAM_CLK_DIV;
+
+	return (ctrl_freq * picoseconds + 999999) / 1000000;
+}
+
 static void auto_set_timing_para(struct dram_para *para)
 {
 	struct sunxi_mctl_ctl_reg * const mctl_ctl =
 		(struct sunxi_mctl_ctl_reg *)SUNXI_DRAM_CTL0_BASE;
 	u32 reg_val;
 
-	u8 tccd		= 2;
+#ifndef CONFIG_DRAM_TIMING_DEFAULT
+	u8 tccd		= CONFIG_DRAM_TIMING_TCCD;
+	u8 tfaw		= ps_to_t(CONFIG_DRAM_TIMING_TFAW);
+	u8 trrd		= max(ps_to_t(CONFIG_DRAM_TIMING_TRRD_PS), CONFIG_DRAM_TIMING_TRRD_CK);
+	u8 trcd		= ps_to_t(CONFIG_DRAM_TIMING_TRCD);
+	u8 trc		= ps_to_t(CONFIG_DRAM_TIMING_TRC);
+	u8 txp		= max(ps_to_t(CONFIG_DRAM_TIMING_TXP_PS), CONFIG_DRAM_TIMING_TXP_CK);
+	u8 twtr		= max(ps_to_t(CONFIG_DRAM_TIMING_TWTR_PS), CONFIG_DRAM_TIMING_TWTR_CK);
+	u8 trtp		= max(ps_to_t(CONFIG_DRAM_TIMING_TRTP_PS), CONFIG_DRAM_TIMING_TRTP_CK);
+	u8 twr		= max(ps_to_t(CONFIG_DRAM_TIMING_TWR_PS), CONFIG_DRAM_TIMING_TWR_CK);
+	u8 trp		= ps_to_t(CONFIG_DRAM_TIMING_TRP);
+	u8 tras		= ps_to_t(CONFIG_DRAM_TIMING_TRAS);
+	u16 trefi	= ps_to_t(CONFIG_DRAM_TIMING_TREFI) / 32;
+	u16 trfc	= ps_to_t(CONFIG_DRAM_TIMING_TRFC);
+
+	/* Fixed timing parameters */
+	u8 tcl		= CONFIG_DRAM_TIMING_CL/2; /* CL 12 */
+	u8 tcwl		= CONFIG_DRAM_TIMING_CWL/2; /* CWL 8 */
+#else
+	u8 tccd		= 4;
 	u8 tfaw		= ns_to_t(50);
 	u8 trrd		= max(ns_to_t(10), 4);
 	u8 trcd		= ns_to_t(15);
@@ -105,18 +138,19 @@ static void auto_set_timing_para(struct dram_para *para)
 
 	u16 trefi	= ns_to_t(7800) / 32;
 	u16 trfc	= ns_to_t(350);
-
-	/* Fixed timing parameters */
-	u8 tmrw		= 0;
-	u8 tmrd		= 4;
-	u8 tmod		= 12;
-	u8 tcke		= 3;
-	u8 tcksrx	= 5;
-	u8 tcksre	= 5;
-	u8 tckesr	= 4;
-	u8 trasmax	= 24;
 	u8 tcl		= 6; /* CL 12 */
 	u8 tcwl		= 4; /* CWL 8 */
+#endif
+	/* Fixed timing parameters */
+	/* TODO: make parameters configurable only if they are varying according to manufacturer / supported DRAM family */
+	u8 tmrw		= 0;
+	u8 tmrd		= 4;
+	u8 tmod		= max(ns_to_t(15), 12);
+	u8 tcke		= max(ns_to_t(8), 3);
+	u8 tcksrx	= max(ns_to_t(10), 5);
+	u8 tcksre	= max(ns_to_t(10), 5);
+	u8 tckesr	= tcke + 1;
+	u8 trasmax	= 24;
 	u8 t_rdata_en	= 4;
 	u8 wr_latency	= 2;
 
@@ -229,6 +263,7 @@ static int mctl_channel_init(struct dram_para *para)
 	else
 		setbits_le32(&mctl_ctl->pllgcr, 0x3 << 18);
 
+#ifdef CONFIG_DRAM_PARA_AUTODETECT
 	/* Auto detect dram config, set 2 rank and 16bit bus-width */
 	para->cs1 = 0;
 	para->rank = 2;
@@ -280,6 +315,33 @@ static int mctl_channel_init(struct dram_para *para)
 		if (mctl_train_dram(para) != 0)
 			return -EIO;
 	}
+#else
+	para->cs1 = 0;
+	para->rank = CONFIG_DRAM_PARA_RANK;
+	para->bus_width = CONFIG_DRAM_PARA_BUS_WIDTH;
+	mctl_set_cr(para);
+
+	/* Open DQS gating */
+	clrbits_le32(&mctl_ctl->pgcr2, (0x3 << 6));
+	clrbits_le32(&mctl_ctl->dqsgmr, (0x1 << 8) | (0x7));
+
+	mctl_data_train_cfg(para);
+
+	/* ZQ calibration */
+	writel(CONFIG_DRAM_ZQ & 0xff, &mctl_ctl->zqcr1);
+	/* CA calibration */
+	mctl_set_pir(0x00000003);
+	/* More ZQ calibration */
+	writel(readl(&mctl_ctl->zqsr0) | 0x10000000, &mctl_ctl->zqcr2);
+	writel((CONFIG_DRAM_ZQ >> 8) & 0xff, &mctl_ctl->zqcr1);
+
+	if(CONFIG_DRAM_PARA_BUS_WIDTH==8)
+		writel(0x0, DXnGCR0(1)); /* Disable high DQ */
+
+	/* DQS gate training */
+	if (mctl_train_dram(para) != 0)
+		return -EIO;
+#endif
 done:
 	/* Check the dramc status */
 	mctl_await_completion(&mctl_ctl->statr, 0x1, 0x1);
