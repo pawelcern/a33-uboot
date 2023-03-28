@@ -207,6 +207,7 @@ struct sunxi_ccm_reg {
 #define CCM_PLL1_CTRL_K(n)		((((n) - 1) & 0x3) << 4)
 #define CCM_PLL1_CTRL_N(n)		((((n) - 1) & 0x1f) << 8)
 #define CCM_PLL1_CTRL_P(n)		(((n) & 0x3) << 16)
+#define CCM_PLL1_CTRL_LOCK		(0x1 << 28)
 #define CCM_PLL1_CTRL_EN		(0x1 << 31)
 
 #define CCM_PLL3_CTRL_M_SHIFT		0
@@ -224,6 +225,7 @@ struct sunxi_ccm_reg {
 #define CCM_PLL5_CTRL_N(n)		((((n) - 1) & 0x1f) << 8)
 #define CCM_PLL5_CTRL_UPD		(0x1 << 20)
 #define CCM_PLL5_CTRL_SIGMA_DELTA_EN	(0x1 << 24)
+#define CCM_PLL5_CTRL_LOCK		(0x1 << 28)
 #define CCM_PLL5_CTRL_EN		(0x1 << 31)
 
 #ifdef CONFIG_MACH_SUNIV
@@ -238,6 +240,7 @@ struct sunxi_ccm_reg {
 #define CCM_PLL6_CTRL_K_SHIFT		4
 #define CCM_PLL6_CTRL_K_MASK		(0x3 << CCM_PLL6_CTRL_K_SHIFT)
 #define CCM_PLL6_CTRL_LOCK		(1 << 28)
+#define CCM_PLL6_CTRL_EN		(1 << 31)
 
 #define CCM_SATA_PLL_DEFAULT		0x90005811 /* 100 MHz */
 
@@ -251,6 +254,7 @@ struct sunxi_ccm_reg {
 #define CCM_MIPI_PLL_CTRL_N_MASK	(0xf << CCM_MIPI_PLL_CTRL_N_SHIFT)
 #define CCM_MIPI_PLL_CTRL_N(n)		((((n) - 1) & 0xf) << 8)
 #define CCM_MIPI_PLL_CTRL_LDO_EN	(0x3 << 22)
+#define CCM_MIPI_PLL_CTRL_LOCK		(0x1 << 28)
 #define CCM_MIPI_PLL_CTRL_EN		(0x1 << 31)
 
 #define CCM_PLL10_CTRL_M_SHIFT		0
@@ -266,6 +270,7 @@ struct sunxi_ccm_reg {
 #define CCM_PLL11_CTRL_N(n)		((((n) - 1) & 0x3f) << 8)
 #define CCM_PLL11_CTRL_SIGMA_DELTA_EN	(0x1 << 24)
 #define CCM_PLL11_CTRL_UPD		(0x1 << 30)
+#define CCM_PLL11_CTRL_LOCK		(0x1 << 28)
 #define CCM_PLL11_CTRL_EN		(0x1 << 31)
 
 #define CCM_PLL5_TUN_LOCK_TIME(x)	(((x) & 0x7) << 24)
