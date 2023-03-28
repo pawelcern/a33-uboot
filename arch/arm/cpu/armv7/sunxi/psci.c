@@ -80,7 +80,8 @@ static void __secure clamp_release(u32 __maybe_unused *clamp)
 {
 #if defined(CONFIG_MACH_SUN6I) || defined(CONFIG_MACH_SUN7I) || \
 	defined(CONFIG_MACH_SUN8I_H3) || \
-	defined(CONFIG_MACH_SUN8I_R40)
+	defined(CONFIG_MACH_SUN8I_R40) || \
+	defined(CONFIG_MACH_SUN8I_A33)
 	u32 tmp = 0x1ff;
 	do {
 		tmp >>= 1;
@@ -95,7 +96,8 @@ static void __secure clamp_set(u32 __maybe_unused *clamp)
 {
 #if defined(CONFIG_MACH_SUN6I) || defined(CONFIG_MACH_SUN7I) || \
 	defined(CONFIG_MACH_SUN8I_H3) || \
-	defined(CONFIG_MACH_SUN8I_R40)
+	defined(CONFIG_MACH_SUN8I_R40) || \
+	defined(CONFIG_MACH_SUN8I_A33)
 	writel(0xff, clamp);
 #endif
 }
