@@ -763,6 +763,16 @@ config DRAM_ODT_EN
 	---help---
 	Select this to enable dram odt (on die termination).
 
+config DRAM_ODT_FREQ_THRESHOLD
+	depends on MACH_SUN8I_A33
+	depends on DRAM_ODT_EN
+	int "sunxi dram odt minimum frequency"
+	default 400
+	---help---
+	Set minimum DRAM frequency for odt.
+	For frequencies below the limit, odt will be disabled,
+	regargless of "sunxi dram odt en" setting.
+
 if MACH_SUN4I || MACH_SUN5I || MACH_SUN7I
 config DRAM_EMR1
 	int "sunxi dram emr1 value"
