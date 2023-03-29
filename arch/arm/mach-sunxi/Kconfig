@@ -904,6 +904,16 @@ config UART0_PORT_F
 	at the same time, the system can be only booted in the FEL mode.
 	Only enable this if you really know what you are doing.
 
+config SUNXI_APB2_32MHz
+	bool "32MHz APB2 clock"
+	depends on MACH_SUN8I_A33
+	---help---
+	Changes APB2 clock frequency from regular XTAL (24MHz)
+	to PLL_PERIPH/19. It is ~31,578MHz. Thanks to this change,
+	UART0...4 can operate at 1Mbps and 2Mbps (1,3% error).
+	Please note clock of APB2 affects all peripherals
+	on the same bus (Allwinner A33: UART0...4, TWI0...2)
+
 config OLD_SUNXI_KERNEL_COMPAT
 	bool "Enable workarounds for booting old kernels"
 	---help---

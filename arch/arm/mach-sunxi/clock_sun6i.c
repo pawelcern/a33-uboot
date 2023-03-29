@@ -86,6 +86,26 @@ void clock_init_sec(void)
 
 void clock_init_uart(void)
 {
+#ifdef CONFIG_SUNXI_APB2_32MHZ
+	/* 600 / 19 = ~31,58MHz. Will allow set up of UARTs:
+	 * 2Mbps:     ~1,3%  error (OK)
+	 * 1Mbps:     ~1,3%  error (OK)
+	 * 921600bps: ~7,1%  error (not supported)
+	 * 460800bps: ~7,1%  error (not supported)
+	 * 230400bps: ~4,8%  error (not supported)
+	 * 115200bps: ~0,8%  error (OK)
+	 * 57600bps:  ~0,8%  error (OK)
+	 * 38400bps:  ~0,8%  error (OK)
+	 * ....
+	 */
+
+	/* uart other than UART5 clock source is apb2 */
+	writel(APB2_CLK_SRC_PLL6|
+	       APB2_CLK_RATE_N_1|
+	       APB2_CLK_RATE_M(19),
+	       &ccm->apb2_div);
+#endif
+
 #if CONFIG_CONS_INDEX < 5
 	struct sunxi_ccm_reg *const ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
@@ -103,11 +123,25 @@ void clock_init_uart(void)
 			     1 << (APB1_RESET_UART_SHIFT +
 				   CONFIG_CONS_INDEX - 1));
 #else
+#ifndef CONFIG_SUNXI_APB2_32MHZ
+		/* Regular XTAL 24MHz will allow set up of UARTs:
+		 * 2Mbps:       25% error (not supported)
+		 * 1Mbps:       25% error (not supported)
+		 * 921600bps:  ~18% error (not supported)
+		 * 460800bps: ~8,5% error (not supported)
+		 * 230400bps:   ~7% error (not supported)
+		 * 115200bps: ~1,6% error (OK)
+		 * 57600bps:  ~1,6% error (OK)
+		 * 38400bps:  ~1,6% error (OK)
+		 * ....
+		 */
+
 		/* uart clock source is apb2 */
 		writel(APB2_CLK_SRC_OSC24M|
 		       APB2_CLK_RATE_N_1|
 		       APB2_CLK_RATE_M(1),
 		       &ccm->apb2_div);
+#endif
 
 		/* open the clock for uart */
 		setbits_le32(&ccm->apb2_gate,
