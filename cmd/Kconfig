@@ -654,6 +654,13 @@ config CMD_NVEDIT_SELECT
 	help
 	  Select the compiled-in persistent storage of environment variables.
 
+config CMD_READVAR
+	tristate "READVAR - read variable from file"
+	default n
+	select FS_EXT4
+	help
+	  READVER reads file content to variable.
+	  No more than 64 characters are read currently.
 endmenu
 
 menu "Memory commands"

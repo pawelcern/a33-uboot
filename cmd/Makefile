@@ -208,6 +208,9 @@ obj-$(CONFIG_CMD_ETHSW) += ethsw.o
 obj-$(CONFIG_CMD_AXI) += axi.o
 obj-$(CONFIG_CMD_PVBLOCK) += pvblock.o
 
+# Miscellaneous
+obj-$(CONFIG_CMD_READVAR) += readvar.o
+
 # Power
 obj-$(CONFIG_CMD_PMIC) += pmic.o
 obj-$(CONFIG_CMD_REGULATOR) += regulator.o
@@ -229,6 +232,7 @@ obj-$(CONFIG_X86) += x86/
 obj-$(CONFIG_CMD_MESON) += meson/
 
 obj-$(CONFIG_ARCH_MVEBU) += mvebu/
+
 endif # !CONFIG_SPL_BUILD
 
 obj-$(CONFIG_$(SPL_)CMD_TLV_EEPROM) += tlv_eeprom.o
