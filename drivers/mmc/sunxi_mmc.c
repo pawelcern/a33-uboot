@@ -65,8 +65,8 @@ static int mmc_set_mod_clk(struct sunxi_mmc_priv *priv, unsigned int hz)
 	bool new_mode = IS_ENABLED(CONFIG_MMC_SUNXI_HAS_NEW_MODE);
 	u32 val = 0;
 
-	/* A83T support new mode only on eMMC */
-	if (IS_ENABLED(CONFIG_MACH_SUN8I_A83T) && priv->mmc_no != 2)
+	/* A83T / A33 support new mode only on eMMC (MMC2). Consider placing new_timing_mode flag in device tree. */
+	if ((IS_ENABLED(CONFIG_MACH_SUN8I_A83T) || IS_ENABLED(CONFIG_MACH_SUN8I_A33)) && priv->reg != (struct sunxi_mmc *)SUNXI_MMC2_BASE)
 		new_mode = false;
 
 	if (hz <= 24000000) {
@@ -127,10 +127,6 @@ static int mmc_set_mod_clk(struct sunxi_mmc_priv *priv, unsigned int hz)
 		sclk_dly = 4;
 	}
 
-	if (new_mode) {
-		val |= CCM_MMC_CTRL_MODE_SEL_NEW;
-		setbits_le32(&priv->reg->ntsr, SUNXI_MMC_NTSR_MODE_SEL_NEW);
-	}
 
 	if (!sunxi_mmc_can_calibrate()) {
 		/*
@@ -139,6 +135,11 @@ static int mmc_set_mod_clk(struct sunxi_mmc_priv *priv, unsigned int hz)
 		 */
 		val = CCM_MMC_CTRL_OCLK_DLY(oclk_dly) |
 			CCM_MMC_CTRL_SCLK_DLY(sclk_dly);
+	}
+
+	if (new_mode) {
+		val |= CCM_MMC_CTRL_MODE_SEL_NEW;
+		setbits_le32(&priv->reg->ntsr, SUNXI_MMC_NTSR_MODE_SEL_NEW);
 	}
 
 	writel(CCM_MMC_CTRL_ENABLE| pll | CCM_MMC_CTRL_N(n) |
@@ -686,11 +687,38 @@ static int sunxi_mmc_probe(struct udevice *dev)
 	return 0;
 }
 
+static int sunxi_mmc_remove(struct udevice *dev)
+{
+	/* Turn off new timing modes. Otherwise linux kernels without new timing mode support won't work (eMMC won't work) */
+	struct sunxi_mmc_priv *priv = dev_get_priv(dev);
+
+	bool new_mode = IS_ENABLED(CONFIG_MMC_SUNXI_HAS_NEW_MODE);
+
+	/* A83T / A33 support new mode only on eMMC */
+	if ((IS_ENABLED(CONFIG_MACH_SUN8I_A83T) || IS_ENABLED(CONFIG_MACH_SUN8I_A33)) && priv->reg != (struct sunxi_mmc *)SUNXI_MMC2_BASE)
+		new_mode = false;
+
+	if (new_mode)
+	{
+		clrbits_le32(&priv->reg->ntsr, SUNXI_MMC_NTSR_MODE_SEL_NEW);
+		clrbits_le32(priv->mclkreg, CCM_MMC_CTRL_MODE_SEL_NEW);
+	}
+
+	return 0;
+}
+
 static int sunxi_mmc_bind(struct udevice *dev)
 {
 	struct sunxi_mmc_plat *plat = dev_get_plat(dev);
 
 	return mmc_bind(dev, &plat->mmc, &plat->cfg);
+}
+
+static int sunxi_mmc_unbind(struct udevice *dev)
+{
+	mmc_unbind(dev);
+
+	return 0;
 }
 
 static const struct udevice_id sunxi_mmc_ids[] = {
@@ -713,7 +741,9 @@ U_BOOT_DRIVER(sunxi_mmc_drv) = {
 	.id		= UCLASS_MMC,
 	.of_match	= sunxi_mmc_ids,
 	.bind		= sunxi_mmc_bind,
+	.unbind		= sunxi_mmc_unbind,
 	.probe		= sunxi_mmc_probe,
+	.remove		= sunxi_mmc_remove,
 	.ops		= &sunxi_mmc_ops,
 	.plat_auto	= sizeof(struct sunxi_mmc_plat),
 	.priv_auto	= sizeof(struct sunxi_mmc_priv),
