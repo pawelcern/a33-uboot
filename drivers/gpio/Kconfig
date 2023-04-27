@@ -372,6 +372,21 @@ config SUNXI_GPIO
 	help
 	  Support the GPIO device in Allwinner SoCs.
 
+config SUNXI_GPIO_FREEZE_PULL
+	bool "Keep pull-up/pull-down settings from device-tree"
+	depends on SUNXI_GPIO
+	help
+	  If enabled, command line gpio commands or other gpio-uclass tools
+	  won't affect pull-up / pull-down settings declared in device tree.
+
+config SUNXI_GPIO_FREEZE_CFG
+	bool "Keep I/O mode settings from device-tree"
+	depends on SUNXI_GPIO
+	help
+	  If enabled, command line gpio commands or other gpio-uclass tools
+	  won't affect I/O mode (GPIO input, output or alternate function) 
+	  declared in device tree.
+
 config XILINX_GPIO
 	bool "Xilinx GPIO driver"
 	depends on DM_GPIO

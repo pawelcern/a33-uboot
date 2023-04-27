@@ -190,8 +190,12 @@ static int sunxi_gpio_set_flags(struct udevice *dev, unsigned int offset,
 			pull = 1;
 		else if (flags & GPIOD_PULL_DOWN)
 			pull = 2;
+#if !CONFIG_IS_ENABLED(SUNXI_GPIO_FREEZE_PULL)
 		sunxi_gpio_set_pull_bank(plat->regs, offset, pull);
+#endif
+#if !CONFIG_IS_ENABLED(SUNXI_GPIO_FREEZE_CFG)
 		sunxi_gpio_set_cfgbank(plat->regs, offset, SUNXI_GPIO_INPUT);
+#endif
 	}
 
 	return 0;
